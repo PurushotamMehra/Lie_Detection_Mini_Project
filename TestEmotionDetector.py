@@ -62,6 +62,7 @@ emo_freq_dict = {
 endtime = int(time.time()) + 12
 time_Count = 0
 
+#Opens the CSV file 
 with open('EmotionsDetected.csv', 'a', newline='') as csv_file:
     csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
     csv_writer.writeheader()
@@ -77,11 +78,12 @@ def emotion_test():
     global lie_Counter
     global truth_Counter 
     global y_EmoSum
-    color = (255, 0, 255)
+    global color 
     start_execution_time = time.time()
     end_execution_time = start_execution_time + 30
 
-    while time.time() <= end_execution_time:
+    # while time.time() <= end_execution_time:
+    while True : 
 
 ##############################_BLINK RATE code_#################################
         if cap.get(cv2.CAP_PROP_POS_FRAMES) == cap.get(cv2.CAP_PROP_FRAME_COUNT):
@@ -131,6 +133,7 @@ def emotion_test():
         #     img = cv2.resize(img, (900, 600))
         #     # imgStack = cvzone.stackImages([img, img], 2, 1)
 
+
 ############################_Emotion Detection Code_##############################
         # y_EmoSum = 0
         # Find haar cascade to draw bounding box around face
@@ -164,22 +167,22 @@ def emotion_test():
                 lie_Counter += 1
                 emo_freq_dict['Disgust'] +=1
             elif maxindex == 2: #Fear = 2
-                y_EmoSum += 2
+                y_EmoSum += 1
                 lie_Counter += 1
                 emo_freq_dict['Fear'] +=1
             elif maxindex == 3: #Happy = -2
-                y_EmoSum += -2
+                y_EmoSum += -1
                 truth_Counter += 1
                 emo_freq_dict['Happy'] +=1
             elif maxindex == 4: #Neutral = 0
                 y_EmoSum += 0
                 emo_freq_dict['Neutral'] +=1
             elif maxindex == 5: #Sad = -3
-                y_EmoSum += -3
+                y_EmoSum += -1
                 truth_Counter += 1
                 emo_freq_dict['Sad'] +=1
             elif maxindex == 6: #Surprised = 3
-                y_EmoSum += 3
+                y_EmoSum += 1
                 lie_Counter += 1
                 emo_freq_dict['Surprise'] +=1
 
@@ -208,9 +211,9 @@ def emotion_test():
     cv2.destroyAllWindows()
 
 
-emotion_test()
+# emotion_test()
 
-print("Lied Percentage : ", int((lie_Counter/(lie_Counter + truth_Counter))*100))
-print("Truth Percentage : ", int((truth_Counter/(lie_Counter + truth_Counter))*100))
-print("Average Blink rate : ", final_count)
-print(emo_freq_dict)
+# print("Lied Percentage : ", int((lie_Counter/(lie_Counter + truth_Counter))*100))
+# print("Truth Percentage : ", int((truth_Counter/(lie_Counter + truth_Counter))*100))
+# print("Average Blink rate : ", final_count)
+# print(emo_freq_dict)

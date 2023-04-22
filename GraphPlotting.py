@@ -27,3 +27,4 @@ def graphPlot():
 
     ani = FuncAnimation(fig, plotting, interval = 500)
     plt.show() 
+
