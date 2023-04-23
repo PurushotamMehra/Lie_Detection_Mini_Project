@@ -1,0 +1,2 @@
+Emotion Frequency,Blink List,Truth Count,Lie Count,Neutral Count
+"{'Anger': 1, 'Disgust': 0, 'Fear': 2, 'Happy': 130, 'Neutral': 16, 'Sad': 90, 'Surprise': 161}","[0, 5, 2, 4, 4, 3]",221,163,16

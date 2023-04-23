@@ -13,7 +13,6 @@ from cvzone.PlotModule import LivePlot
 
 
 
-# emotion_dict = {0: "Happy", 1: "Disgusted", 2: "Fearful", 3: "Angry", 4: "surpised", 5: "Sad", 6: "Neutral"}
 emotion_dict = {0: "Angry", 1: "Disgusted", 2: "Fearful", 3: "Happy", 4: "Neutral", 5: "Sad", 6: "Surprised"}
 
 plotY = LivePlot(900, 600, [-25, 25], invert=True)
@@ -39,16 +38,26 @@ cap = cv2.VideoCapture(0)
 
 #Blink rate Variabels
 detector = FaceMeshDetector(maxFaces=1)
+
 ratioList = []
+blinkList = []
+
 idList = [22, 23, 24, 26, 110, 157, 158, 159, 160, 161, 130, 243]
+
 blinkCounter = 0
 counter = 0
-color = (255, 0, 255)
 final_count = 0
+timed_blink = 0
+avg_blinks = 0
+color = (255, 0, 255)
+
 
 #Lie and truth Counters
 lie_Counter = 0
 truth_Counter = 0
+neutral_Counter = 0
+
+
 emo_freq_dict = {
                     "Anger" : 0,
                     "Disgust" : 0,
@@ -67,23 +76,40 @@ with open('EmotionsDetected.csv', 'a', newline='') as csv_file:
     csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
     csv_writer.writeheader()
 
-# pass here your video path
-# you may download one from here : https://www.pexels.com/video/three-girls-laughing-5273028/
-# cap = cv2.VideoCapture("C:\\JustDoIt\\ML\\Sample_videos\\emotion_sample6.mp4")
+# with open('ReportData.csv', 'a', newline='') as csvfile:
+#     # create a CSV writer object
+#         csvwrite = csv.writer(csvfile)
+#         csvwrite.writerow(['Emotion Frequency', 'Blink List', 'Truth Count', 'Lie Count', 'Neutral Count'])
+
+
 def emotion_test(): 
+    # with open('ReportData.csv', 'a', newline='') as csvfile:
+    # # create a CSV writer object
+    #     csvwrite = csv.writer(csvfile)
+    #     csvwrite.writerow(['Emotion Frequency', 'Blink List', 'Truth Count', 'Lie Count', 'Neutral Count'])
+
     global time_Count 
     global blinkCounter 
     global counter 
     global final_count 
+    global timed_blink
+    global avg_blinks
+
     global lie_Counter
     global truth_Counter 
-    global y_EmoSum
-    global color 
-    start_execution_time = time.time()
-    end_execution_time = start_execution_time + 30
+    global neutral_Counter
 
+    global y_EmoSum
+    
+    global color 
+    
+    # start_execution_time = time.time()
+    # end_execution_time = start_execution_time + 30
+
+    start_timer = time.time()
+    end_timer = time.time() + 60
     # while time.time() <= end_execution_time:
-    while True : 
+    while end_timer > time.time() : 
 
 ##############################_BLINK RATE code_#################################
         if cap.get(cv2.CAP_PROP_POS_FRAMES) == cap.get(cv2.CAP_PROP_FRAME_COUNT):
@@ -114,24 +140,26 @@ def emotion_test():
             ratioAvg = sum(ratioList) / len(ratioList)
     
             if ratioAvg < 35 and counter == 0:
-                blinkCounter += 1
-                final_count += 1
-                # color = (0,200,0)
-                counter = 1
+                if ( int(time.time() - start_timer) % 10 == 0):
+                    avg_blinks = round((timed_blink / 10) * 6)
+                    blinkList.append(avg_blinks)
+                    timed_blink = 1
+                
+                    blinkCounter += 1
+                    final_count += 1
+                    color = (0,200,0)
+                    counter = 1
+                    # time.sleep(1)
+                else :
+                    blinkCounter += 1
+                    final_count += 1
+                    timed_blink += 1
+                    color = (0,200,0)
+                    counter = 1
             if counter != 0:
                 counter += 1
                 if counter > 10:
                     counter = 0
-                    # color = (255,0, 255)
-    
-            # cvzone.putTextRect(img, f'Blink Count: {blinkCounter}', (50, 100))
-    
-            # imgPlot = plotY.update(ratioAvg, color)
-            # img = cv2.resize(img, (900, 600))
-            # imgStack = cvzone.stackImages([img, imgPlot], 2, 1)
-        # else:
-        #     img = cv2.resize(img, (900, 600))
-        #     # imgStack = cvzone.stackImages([img, img], 2, 1)
 
 
 ############################_Emotion Detection Code_##############################
@@ -162,34 +190,43 @@ def emotion_test():
                 y_EmoSum =+ -1
                 truth_Counter =+ 1
                 emo_freq_dict['Anger'] +=1
+
             elif maxindex == 1: #Disgusted = 1
                 y_EmoSum += 1
                 lie_Counter += 1
                 emo_freq_dict['Disgust'] +=1
-            elif maxindex == 2: #Fear = 2
+                                                                    #Made every emotion 1 or -1 to make the graph more manageable
+            elif maxindex == 2: #Fear = 1
                 y_EmoSum += 1
                 lie_Counter += 1
                 emo_freq_dict['Fear'] +=1
-            elif maxindex == 3: #Happy = -2
+
+            elif maxindex == 3: #Happy = -1
                 y_EmoSum += -1
                 truth_Counter += 1
                 emo_freq_dict['Happy'] +=1
+
             elif maxindex == 4: #Neutral = 0
-                y_EmoSum += 0
+                y_EmoSum = 0
+                neutral_Counter += 1
                 emo_freq_dict['Neutral'] +=1
-            elif maxindex == 5: #Sad = -3
+
+            elif maxindex == 5: #Sad = -1
                 y_EmoSum += -1
                 truth_Counter += 1
                 emo_freq_dict['Sad'] +=1
-            elif maxindex == 6: #Surprised = 3
+
+            elif maxindex == 6: #Surprised = 1
                 y_EmoSum += 1
                 lie_Counter += 1
                 emo_freq_dict['Surprise'] +=1
 
             x_Time.append(time_Count)
             y_Emotion.append(y_EmoSum)
+
+
             dataframe = pd.DataFrame(list(zip(x_Time, y_Emotion)), columns=['Time', 'Emotions'])
-            dataframe.to_csv("EmotionsDetected.csv")   
+            dataframe.to_csv("EmotionsDetected.csv")  
 
             print(maxindex)
             print(final_count)
@@ -206,14 +243,27 @@ def emotion_test():
         # cv2.imshow("Image", imgStack)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-        # file.close()
+        # file.close()     
+        
     cap.release()
     cv2.destroyAllWindows()
+    
+    with open('ReportData.csv', 'a', newline='') as csvfile:
+            csvwrite = csv.writer(csvfile)
+            csvwrite.writerow(['Emotion Frequency', 'Blink List', 'Truth Count', 'Lie Count', 'Neutral Count'])
+            csvwrite.writerow([emo_freq_dict, blinkList, truth_Counter, lie_Counter, neutral_Counter])
 
 
-# emotion_test()
+#Remove this part when running multithreading ====================================================================================
+emotion_test()
 
-# print("Lied Percentage : ", int((lie_Counter/(lie_Counter + truth_Counter))*100))
-# print("Truth Percentage : ", int((truth_Counter/(lie_Counter + truth_Counter))*100))
-# print("Average Blink rate : ", final_count)
-# print(emo_freq_dict)
+print("Lied Percentage : ", int((lie_Counter/(lie_Counter + truth_Counter + neutral_Counter))*100), " ", type(lie_Counter))
+print("Truth Percentage : ", int((truth_Counter/(lie_Counter + truth_Counter + neutral_Counter))*100), " ", type(truth_Counter))
+print("Neutral Percentage : ", int((neutral_Counter/(lie_Counter + truth_Counter + neutral_Counter))*100), " ", type(neutral_Counter))
+print("\nBase Blink rate  : ", blinkList[0])
+print("Highest Blink Rate : ", max(blinkList))
+print("Average Blink List : ", sum(blinkList)/len(blinkList))
+print("Blink list : ", blinkList, " ", type(blinkList))
+print("\n")
+print(emo_freq_dict, " ", type(emo_freq_dict))
+#====================================================================================================================================
